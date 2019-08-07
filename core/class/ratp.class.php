@@ -74,7 +74,7 @@ class ratp extends eqLogic {
     }
 
     public function preSave() {
-        //$this->setDisplay("showNameOndashboard",0);
+        $this->setDisplay("showNameOndashboard",0);
     }
 
     public function postSave() {
@@ -209,7 +209,7 @@ class ratpCmd extends cmd {
         switch ($this->getLogicalId()) {
             case 'refresh':
                 $url = "https://api-ratp.pierre-grimaud.fr/v4/schedules/"; //buses/121/Fort%20de%20Rosny/R
-                $url = $url.$this->getConfiguration("urlapi");
+                $url = $url.$eqlogic->getConfiguration("urlapi");
                 $json = file_get_contents($url);
                 if(!$json){
                     $eqlogic->checkAndUpdateCmd('ligne', "Erreur API!");
