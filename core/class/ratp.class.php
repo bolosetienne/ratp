@@ -37,7 +37,7 @@ class ratp extends eqLogic {
         
         foreach ($eqLogics as $ratp) {
             if ($ratp->getIsEnable() == 1) {//vérifie que l'équipement est acitf
-                $cmd = $ratp->getCmd(null, 'refresh');//retourne la commande "refresh si elle exxiste
+                $cmd = $ratp->getCmd(null, 'refresh');//retourne la commande "refresh si elle existe
                 if (!is_object($cmd)) {//Si la commande n'existe pas
                     continue; //continue la boucle
                 }
@@ -78,9 +78,7 @@ class ratp extends eqLogic {
     }
 
     public function postSave() {
-        if($this->getConfiguration("urlapi") == ""){
-            $this->setConfiguration("urlapi","automatique");
-        }
+
         $refresh = $this->getCmd(null, 'refresh');
         if (!is_object($refresh)) {
             $refresh = new ratpCmd();
@@ -208,9 +206,9 @@ class ratpCmd extends cmd {
         $eqlogic = $this->getEqLogic();
         switch ($this->getLogicalId()) {
             case 'refresh':
-                $url = "https://api-ratp.pierre-grimaud.fr/v4/schedules/"; //buses/121/Fort%20de%20Rosny/R
-                $url = $url.$eqlogic->getConfiguration("urlapi");
-                $json = file_get_contents($url);
+                $url = "https://api-ratp.pierre-grimaud.fr/v4/schedules/"; //url de base de l'api de pierre-grimaud
+                $url = $url.$eqlogic->getConfiguration("urlapi");//ajout de l'URI concernant l'arret demandé
+                $json = file_get_contents($url);//Récuperation du retour de l'URL
                 if(!$json){
                     $eqlogic->checkAndUpdateCmd('ligne', "Erreur API!");
                     $eqlogic->checkAndUpdateCmd('passage1', "");
@@ -220,10 +218,10 @@ class ratpCmd extends cmd {
                     break;
                 }
                 $data = json_decode($json,true);
-                $passage1 = $data[result]["schedules"][0]["message"];
-                $passage2 = $data[result]["schedules"][1]["message"];
-                $dest = $data[result]["schedules"][0]["destination"];
-                $tab = explode ( "/" , $url);
+                $passage1 = $data[result]["schedules"][0]["message"];// on récupère le passage 1 dans le retour de l'API
+                $passage2 = $data[result]["schedules"][1]["message"];// on récupère le passage 2 dans le retour de l'API
+                $dest = $data[result]["schedules"][0]["destination"];// on récupère la destination de la ligne dans le retour de l'API
+                $tab = explode ( "/" , $url);// on récupère le type de ligne dans le retour de l'API
                 
                 switch ($tab[5]) {
                     case 'buses':
@@ -243,11 +241,11 @@ class ratpCmd extends cmd {
                     break;
                 }
                 
-                $line = $type." ".$tab[6];
-                $stop = str_replace("%20"," ",$tab[7]);
+                $line = $type." ".$tab[6];// on récupère le nom de la ligne dans le retour de l'API
+                $stop = str_replace("%20"," ",$tab[7]);// on récupère le nom de l'arret dans le retour de l'API
                 
                 
-                
+                // on met à jours le informations dans les commandes correspondantes
                 $eqlogic->checkAndUpdateCmd('passage1', $passage1);
                 $eqlogic->checkAndUpdateCmd('passage2', $passage2);
                 $eqlogic->checkAndUpdateCmd('direction', $dest);
